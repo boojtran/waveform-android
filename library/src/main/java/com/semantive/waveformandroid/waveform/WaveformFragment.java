@@ -482,7 +482,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     protected synchronized void updateDisplay() {
         if (mIsPlaying) {
             int now = mPlayer.getCurrentPosition() + mPlayStartOffset;
-            currentTimeMillis = now;
+            currentTimeMillis = mPlayer.getCurrentPosition();
             int frames = mWaveformView.millisecsToPixels(now);
             mWaveformView.setPlayback(frames);
             setOffsetGoalNoUpdate(frames - mWidth / 2);

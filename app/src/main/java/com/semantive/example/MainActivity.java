@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
          */
         @Override
         protected String getFileName() {
-            return "path to your audio file";
+            return "/sdcard/janob.mp3";
         }
 
         /**
