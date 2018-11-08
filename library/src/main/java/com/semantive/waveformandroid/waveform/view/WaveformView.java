@@ -25,6 +25,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+
 import com.semantive.waveformandroid.R;
 import com.semantive.waveformandroid.waveform.Segment;
 import com.semantive.waveformandroid.waveform.soundfile.CheapSoundFile;
@@ -45,7 +46,7 @@ import java.util.TreeMap;
  * <p/>
  * WaveformView doesn't actually handle selection, but it will just display
  * the selected part of the waveform in a different color.
- *
+ * <p>
  * Modified by Anna Stępień <anna.stepien@semantive.com>
  */
 public class WaveformView extends View {
@@ -54,11 +55,17 @@ public class WaveformView extends View {
 
     public interface WaveformListener {
         public void waveformTouchStart(float x);
+
         public void waveformTouchMove(float x);
+
         public void waveformTouchEnd();
+
         public void waveformFling(float x);
+
         public void waveformDraw();
+
         public void waveformZoomIn();
+
         public void waveformZoomOut();
     }
 
@@ -144,6 +151,7 @@ public class WaveformView extends View {
                         mInitialScaleSpan = Math.abs(d.getCurrentSpanX());
                         return true;
                     }
+
                     public boolean onScale(ScaleGestureDetector d) {
                         float scale = Math.abs(d.getCurrentSpanX());
                         if (scale - mInitialScaleSpan > 40) {

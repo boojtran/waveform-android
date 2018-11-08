@@ -1,6 +1,7 @@
 package com.semantive.waveformandroid.waveform;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -18,7 +19,14 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AbsoluteLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.Priority;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.engine.Resource;
+import com.bumptech.glide.request.RequestOptions;
 import com.semantive.waveformandroid.R;
 import com.semantive.waveformandroid.waveform.soundfile.CheapSoundFile;
 import com.semantive.waveformandroid.waveform.view.MarkerView;
@@ -47,7 +55,7 @@ import java.util.List;
 /**
  * Keeps track of the waveform display, current horizontal offset, marker handles,
  * start / end text boxes, and handles all of the buttons and controls
- *
+ * <p>
  * Modified by Anna Stępień <anna.stepien@semantive.com>
  */
 public abstract class WaveformFragment extends Fragment implements MarkerView.MarkerListener, WaveformView.WaveformListener {
@@ -100,6 +108,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     protected int mMarkerTopOffset;
     protected int mMarkerBottomOffset;
     protected int currentTimeMillis;
+    private ImageView screenView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -364,6 +373,8 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         markStartButton.setOnClickListener(mMarkStartListener);
         TextView markEndButton = (TextView) view.findViewById(R.id.mark_end);
         markEndButton.setOnClickListener(mMarkEndListener);
+
+        screenView = view.findViewById(R.id.screenView);
 
         enableDisableButtons();
 
@@ -729,7 +740,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
                     mPlayer.reset();
                     mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                     FileInputStream subsetInputStream = new FileInputStream(mFile.getAbsolutePath());
-                    mPlayer.setDataSource(subsetInputStream.getFD(),startByte, endByte - startByte);
+                    mPlayer.setDataSource(subsetInputStream.getFD(), startByte, endByte - startByte);
                     mPlayer.prepare();
                     mPlayStartOffset = mPlayStartMsec;
                 } catch (Exception e) {
@@ -865,5 +876,19 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
             return 60;
         }
         return 5;
+    }
+
+    public void setScreenImage(String name, Context context, String packageName) {
+        RequestOptions options = new RequestOptions()
+                .fitCenter()
+                .placeholder(R.drawable.ninja)
+                .error(R.drawable.ninja)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .priority(Priority.HIGH);
+
+        Glide.with(this)
+                .load(context.getResources().getIdentifier(name, "drawable", packageName))
+                .apply(options)
+                .into(screenView);
     }
 }

@@ -1,5 +1,6 @@
 package com.semantive.example;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -29,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
          *
          * @return
          */
+
         @Override
         protected String getFileName() {
             return "/sdcard/janob.mp3";
@@ -45,6 +47,12 @@ public class MainActivity extends AppCompatActivity {
                     new Segment(55.2, 55.8, Color.rgb(238, 23, 104)),
                     new Segment(56.2, 56.6, Color.rgb(238, 23, 104)),
                     new Segment(58.4, 59.9, Color.rgb(184, 92, 184)));
+        }
+
+        @Override
+        protected synchronized void updateDisplay() {
+            setScreenImage("tom_3", getActivity(), "com.semantive.example");
+            super.updateDisplay();
         }
     }
 }
