@@ -99,6 +99,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     protected int mMarkerRightInset;
     protected int mMarkerTopOffset;
     protected int mMarkerBottomOffset;
+    protected int currentTimeMillis;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -481,6 +482,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     protected synchronized void updateDisplay() {
         if (mIsPlaying) {
             int now = mPlayer.getCurrentPosition() + mPlayStartOffset;
+            currentTimeMillis = now;
             int frames = mWaveformView.millisecsToPixels(now);
             mWaveformView.setPlayback(frames);
             setOffsetGoalNoUpdate(frames - mWidth / 2);
