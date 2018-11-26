@@ -15,7 +15,6 @@
  */
 
 package com.semantive.waveformandroid.waveform.view;
-
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Rect;
@@ -70,20 +69,20 @@ public class MarkerView extends ImageView {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         switch(event.getAction()) {
-        case MotionEvent.ACTION_DOWN:
-            requestFocus();
-            // We use raw x because this window itself is going to
-            // move, which will screw up the "local" coordinates
-            mListener.markerTouchStart(this, event.getRawX());
-            break;
-        case MotionEvent.ACTION_MOVE:
-            // We use raw x because this window itself is going to
-            // move, which will screw up the "local" coordinates
-            mListener.markerTouchMove(this, event.getRawX());
-            break;
-        case MotionEvent.ACTION_UP:
-            mListener.markerTouchEnd(this);
-            break;
+            case MotionEvent.ACTION_DOWN:
+                requestFocus();
+                // We use raw x because this window itself is going to
+                // move, which will screw up the "local" coordinates
+                mListener.markerTouchStart(this, event.getRawX());
+                break;
+            case MotionEvent.ACTION_MOVE:
+                // We use raw x because this window itself is going to
+                // move, which will screw up the "local" coordinates
+                mListener.markerTouchMove(this, event.getRawX());
+                break;
+            case MotionEvent.ACTION_UP:
+                mListener.markerTouchEnd(this);
+                break;
         }
         return true;
     }

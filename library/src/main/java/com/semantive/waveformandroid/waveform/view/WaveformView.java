@@ -1,5 +1,4 @@
 package com.semantive.waveformandroid.waveform.view;
-
 /*
  * Copyright (C) 2008 Google Inc.
  *
@@ -25,10 +24,9 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
-
 import com.semantive.waveformandroid.R;
 import com.semantive.waveformandroid.waveform.Segment;
-import com.semantive.waveformandroid.waveform.soundfile.CheapSoundFile;
+import com.semantive.waveformandroid.waveform.soundfile.SoundFile;
 
 import java.util.List;
 import java.util.NavigableMap;
@@ -46,7 +44,7 @@ import java.util.TreeMap;
  * <p/>
  * WaveformView doesn't actually handle selection, but it will just display
  * the selected part of the waveform in a different color.
- * <p>
+ *
  * Modified by Anna Stępień <anna.stepien@semantive.com>
  */
 public class WaveformView extends View {
@@ -55,17 +53,11 @@ public class WaveformView extends View {
 
     public interface WaveformListener {
         public void waveformTouchStart(float x);
-
         public void waveformTouchMove(float x);
-
         public void waveformTouchEnd();
-
         public void waveformFling(float x);
-
         public void waveformDraw();
-
         public void waveformZoomIn();
-
         public void waveformZoomOut();
     }
 
@@ -78,7 +70,7 @@ public class WaveformView extends View {
     protected Paint mPlaybackLinePaint;
     protected Paint mTimecodePaint;
 
-    protected CheapSoundFile mSoundFile;
+    protected SoundFile mSoundFile;
     protected int[] mLenByZoomLevel;
     protected float[] mZoomFactorByZoomLevel;
     protected int mZoomLevel;
@@ -151,7 +143,6 @@ public class WaveformView extends View {
                         mInitialScaleSpan = Math.abs(d.getCurrentSpanX());
                         return true;
                     }
-
                     public boolean onScale(ScaleGestureDetector d) {
                         float scale = Math.abs(d.getCurrentSpanX());
                         if (scale - mInitialScaleSpan > 40) {
@@ -203,7 +194,7 @@ public class WaveformView extends View {
         return mSoundFile != null;
     }
 
-    public void setSoundFile(CheapSoundFile soundFile) {
+    public void setSoundFile(SoundFile soundFile) {
         mSoundFile = soundFile;
         mSampleRate = mSoundFile.getSampleRate();
         mSamplesPerFrame = mSoundFile.getSamplesPerFrame();
@@ -639,4 +630,3 @@ public class WaveformView extends View {
         return getZoomedInHeight(zoomLevel, i);
     }
 }
-

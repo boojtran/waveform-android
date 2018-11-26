@@ -16,6 +16,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.container, new CustomWaveformFragment())
@@ -51,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected synchronized void updateDisplay() {
-            setScreenImage("tom_3", getActivity(), "com.semantive.example");
+//            setScreenImage("tom_3", getActivity(), "com.semantive.example");
             super.updateDisplay();
         }
     }

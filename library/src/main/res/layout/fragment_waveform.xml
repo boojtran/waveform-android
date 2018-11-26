@@ -1,22 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="vertical">
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <ImageView
-        android:id="@+id/screenView"
+        android:id="@+id/screen"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.7"
-        android:padding="4dp"
-        android:contentDescription="@string/play" />
+        app:layout_constraintBottom_toTopOf="@+id/wave"
+        app:layout_constraintHeight_percent="0.8"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <AbsoluteLayout
+        android:id="@+id/wave"
         android:layout_width="wrap_content"
         android:layout_height="0px"
-        android:layout_weight="0.3">
+        app:layout_constraintBottom_toTopOf="@id/control_buttons"
+        app:layout_constraintHeight_percent="0.15"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/screen">
 
         <com.semantive.waveformandroid.waveform.view.WaveformView
             android:id="@+id/waveform"
@@ -29,7 +36,7 @@
             android:layout_height="wrap_content"
             android:contentDescription="@string/start_marker"
             android:nextFocusDown="@+id/endmarker"
-            android:src="@drawable/marker_left" />
+            android:src="@drawable/split" />
 
         <com.semantive.waveformandroid.waveform.view.MarkerView
             android:id="@+id/endmarker"
@@ -37,8 +44,7 @@
             android:layout_height="wrap_content"
             android:contentDescription="@string/end_marker"
             android:nextFocusUp="@+id/startmarker"
-            android:nextFocusDown="@+id/info"
-            android:src="@drawable/marker_right" />
+            android:nextFocusDown="@+id/info"/>
 
     </AbsoluteLayout>
 
@@ -49,13 +55,20 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:nextFocusUp="@+id/endmarker"
-        android:nextFocusDown="@+id/play" />
+        android:nextFocusDown="@+id/play"
+        android:visibility="gone" />
 
     <LinearLayout
-        style="@style/ToolbarBackground"
+        android:id="@+id/control_buttons"
         android:layout_width="fill_parent"
-        android:layout_height="62dip"
-        android:gravity="center">
+        android:layout_height="0dp"
+        android:background="@color/black_overlow"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHeight_percent="0.05"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/wave">
 
         <ImageButton
             android:id="@+id/rew"
@@ -90,15 +103,12 @@
 
     </LinearLayout>
 
-    <LinearLayout style="@style/HorizontalDividerTop" />
-
-    <LinearLayout style="@style/HorizontalDividerBottom" />
-
     <LinearLayout
         style="@style/ToolbarBackground"
         android:layout_width="fill_parent"
         android:layout_height="48dip"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:visibility="gone">
 
         <LinearLayout
             android:layout_width="fill_parent"
@@ -150,4 +160,4 @@
 
     </LinearLayout>
 
-</LinearLayout>
+</android.support.constraint.ConstraintLayout>

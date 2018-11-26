@@ -1,10 +1,9 @@
 package com.semantive.waveformandroid.waveform;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -22,18 +21,14 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.Priority;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.engine.Resource;
-import com.bumptech.glide.request.RequestOptions;
 import com.semantive.waveformandroid.R;
-import com.semantive.waveformandroid.waveform.soundfile.CheapSoundFile;
+import com.semantive.waveformandroid.waveform.soundfile.SamplePlayer;
+import com.semantive.waveformandroid.waveform.soundfile.SoundFile;
 import com.semantive.waveformandroid.waveform.view.MarkerView;
 import com.semantive.waveformandroid.waveform.view.WaveformView;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.List;
 
 /*
@@ -65,7 +60,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     protected long mLoadingLastUpdateTime;
     protected boolean mLoadingKeepGoing;
     protected ProgressDialog mProgressDialog;
-    protected CheapSoundFile mSoundFile;
+    protected SoundFile mSoundFile;
     protected File mFile;
     protected String mFilename;
     protected WaveformView mWaveformView;
@@ -95,7 +90,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     protected int mPlayEndMsec;
     protected Handler mHandler;
     protected boolean mIsPlaying;
-    protected MediaPlayer mPlayer;
+    protected SamplePlayer mPlayer;
     protected boolean mTouchDragging;
     protected float mTouchStart;
     protected int mTouchInitialOffset;
@@ -107,8 +102,8 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     protected int mMarkerRightInset;
     protected int mMarkerTopOffset;
     protected int mMarkerBottomOffset;
-    protected int currentTimeMillis;
-    private ImageView screenView;
+    protected ImageView screen;
+    protected int lastPos = -1;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -252,12 +247,14 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
 
         if (marker == mStartMarker) {
             mStartPos = trap((int) (mTouchInitialStartPos + delta));
-            mEndPos = trap((int) (mTouchInitialEndPos + delta));
-        } else {
-            mEndPos = trap((int) (mTouchInitialEndPos + delta));
-            if (mEndPos < mStartPos)
-                mEndPos = mStartPos;
+//            mEndPos = trap((int) (mTouchInitialEndPos + delta));
         }
+//        else
+//            {
+//            mEndPos = trap((int) (mTouchInitialEndPos + delta));
+//            if (mEndPos < mStartPos)
+//                mEndPos = mStartPos;
+//        }
 
         updateDisplay();
     }
@@ -266,9 +263,10 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         mTouchDragging = false;
         if (marker == mStartMarker) {
             setOffsetGoalStart();
-        } else {
-            setOffsetGoalEnd();
         }
+//        else {
+//            setOffsetGoalEnd();
+//        }
     }
 
     public void markerLeft(MarkerView marker, int velocity) {
@@ -277,20 +275,20 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         if (marker == mStartMarker) {
             int saveStart = mStartPos;
             mStartPos = trap(mStartPos - velocity);
-            mEndPos = trap(mEndPos - (saveStart - mStartPos));
+//            mEndPos = trap(mEndPos - (saveStart - mStartPos));
             setOffsetGoalStart();
         }
 
-        if (marker == mEndMarker) {
-            if (mEndPos == mStartPos) {
-                mStartPos = trap(mStartPos - velocity);
-                mEndPos = mStartPos;
-            } else {
-                mEndPos = trap(mEndPos - velocity);
-            }
-
-            setOffsetGoalEnd();
-        }
+//        if (marker == mEndMarker) {
+//            if (mEndPos == mStartPos) {
+//                mStartPos = trap(mStartPos - velocity);
+//                mEndPos = mStartPos;
+//            } else {
+//                mEndPos = trap(mEndPos - velocity);
+//            }
+//
+//            setOffsetGoalEnd();
+//        }
 
         updateDisplay();
     }
@@ -303,20 +301,20 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
             mStartPos += velocity;
             if (mStartPos > mMaxPos)
                 mStartPos = mMaxPos;
-            mEndPos += (mStartPos - saveStart);
-            if (mEndPos > mMaxPos)
-                mEndPos = mMaxPos;
+//            mEndPos += (mStartPos - saveStart);
+//            if (mEndPos > mMaxPos)
+//                mEndPos = mMaxPos;
 
             setOffsetGoalStart();
         }
 
-        if (marker == mEndMarker) {
-            mEndPos += velocity;
-            if (mEndPos > mMaxPos)
-                mEndPos = mMaxPos;
-
-            setOffsetGoalEnd();
-        }
+//        if (marker == mEndMarker) {
+//            mEndPos += velocity;
+//            if (mEndPos > mMaxPos)
+//                mEndPos = mMaxPos;
+//
+//            setOffsetGoalEnd();
+//        }
 
         updateDisplay();
     }
@@ -333,9 +331,10 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         mKeyDown = false;
         if (marker == mStartMarker) {
             setOffsetGoalStartNoUpdate();
-        } else {
-            setOffsetGoalEndNoUpdate();
         }
+//        else {
+//            setOffsetGoalEndNoUpdate();
+//        }
 
         // Delay updaing the display because if this focus was in
         // response to a touch event, we want to receive the touch
@@ -374,8 +373,6 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         TextView markEndButton = (TextView) view.findViewById(R.id.mark_end);
         markEndButton.setOnClickListener(mMarkEndListener);
 
-        screenView = view.findViewById(R.id.screenView);
-
         enableDisableButtons();
 
         mWaveformView = (WaveformView) view.findViewById(R.id.waveform);
@@ -408,6 +405,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         mEndMarker.setFocusable(true);
         mEndMarker.setFocusableInTouchMode(true);
         mEndVisible = true;
+        screen = view.findViewById(R.id.screen);
 
         updateDisplay();
     }
@@ -419,11 +417,11 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         mProgressDialog = new ProgressDialog(getActivity());
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         mProgressDialog.setTitle(R.string.progress_dialog_loading);
-        mProgressDialog.setCancelable(true);
+        mProgressDialog.setCancelable(false);
         mProgressDialog.setOnCancelListener((DialogInterface dialog) -> mLoadingKeepGoing = false);
         mProgressDialog.show();
 
-        final CheapSoundFile.ProgressListener listener = (double fractionComplete) -> {
+        final SoundFile.ProgressListener listener = (double fractionComplete) -> {
             long now = System.currentTimeMillis();
             if (now - mLoadingLastUpdateTime > 100) {
                 mProgressDialog.setProgress(
@@ -433,26 +431,12 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
             return mLoadingKeepGoing;
         };
 
-        // Create the MediaPlayer in a background thread
-        new Thread() {
-            public void run() {
-                try {
-                    MediaPlayer player = new MediaPlayer();
-                    player.setDataSource(mFile.getAbsolutePath());
-                    player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                    player.prepare();
-                    mPlayer = player;
-                } catch (final java.io.IOException e) {
-                    Log.e(TAG, "Error while creating media player", e);
-                }
-            }
-        }.start();
-
         // Load the sound file in a background thread
         new Thread() {
             public void run() {
                 try {
-                    mSoundFile = CheapSoundFile.create(mFile.getAbsolutePath(), listener);
+                    mSoundFile = SoundFile.create(mFile.getAbsolutePath(), listener);
+                    mPlayer = new SamplePlayer(mSoundFile);
                 } catch (final Exception e) {
                     Log.e(TAG, "Error while loading sound file", e);
                     mProgressDialog.dismiss();
@@ -493,10 +477,16 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     protected synchronized void updateDisplay() {
         if (mIsPlaying) {
             int now = mPlayer.getCurrentPosition() + mPlayStartOffset;
-            currentTimeMillis = mPlayer.getCurrentPosition();
+            if (lastPos != now / 1000) {
+                lastPos = now / 1000;
+                Log.d("Mrx", "selected pos = " + now / 1000);
+                Bitmap bitmap = BitmapFactory.decodeFile("/sdcard/FUTURE LAB/2287/" + convertId(lastPos) + ".webp");
+                screen.setImageBitmap(bitmap);
+            }
+
             int frames = mWaveformView.millisecsToPixels(now);
             mWaveformView.setPlayback(frames);
-            setOffsetGoalNoUpdate(frames - mWidth / 2);
+            setOffsetGoalNoUpdate(frames - mWidth + 10);
             if (now >= mPlayEndMsec) {
                 handlePause();
             }
@@ -519,8 +509,8 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
 
                 mOffset += offsetDelta;
 
-                if (mOffset + mWidth / 2 > mMaxPos) {
-                    mOffset = mMaxPos - mWidth / 2;
+                if (mOffset + mWidth - 10 > mMaxPos) {
+                    mOffset = mMaxPos - mWidth;
                     mFlingVelocity = 0;
                 }
                 if (mOffset < 0) {
@@ -569,34 +559,35 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
             startX = 0;
         }
 
-        int endX = mEndPos - mOffset - mEndMarker.getWidth() + mMarkerRightInset;
-        if (endX + mEndMarker.getWidth() >= 0) {
-            if (!mEndVisible) {
-                // Delay this to avoid flicker
-                mHandler.postDelayed(() -> {
-                    mEndVisible = true;
-                    mEndMarker.setImageAlpha(255);
-                }, 0);
-            }
-        } else {
-            if (mEndVisible) {
-                mEndMarker.setImageAlpha(0);
-                mEndVisible = false;
-            }
-            endX = 0;
-        }
+//        int endX = mEndPos - mOffset - mEndMarker.getWidth() + mMarkerRightInset;
+//        if (endX + mEndMarker.getWidth() >= 0) {
+//            if (!mEndVisible) {
+//                // Delay this to avoid flicker
+//                mHandler.postDelayed(() -> {
+//                    mEndVisible = true;
+//                    mEndMarker.setImageAlpha(255);
+//                }, 0);
+//            }
+//        } else {
+//            if (mEndVisible) {
+//                mEndMarker.setImageAlpha(0);
+//                mEndVisible = false;
+//            }
+//            endX = 0;
+//        }
 
+        Log.d("MrxXxc", "startX = " + startX + " mMarkerTopOffset = " + mMarkerTopOffset);
         mStartMarker.setLayoutParams(
                 new AbsoluteLayout.LayoutParams(
+                        64,
                         AbsoluteLayout.LayoutParams.WRAP_CONTENT,
-                        AbsoluteLayout.LayoutParams.WRAP_CONTENT,
-                        startX, mMarkerTopOffset));
+                        startX + 32, mMarkerTopOffset));
 
-        mEndMarker.setLayoutParams(
-                new AbsoluteLayout.LayoutParams(
-                        AbsoluteLayout.LayoutParams.WRAP_CONTENT,
-                        AbsoluteLayout.LayoutParams.WRAP_CONTENT,
-                        endX, mWaveformView.getMeasuredHeight() - mEndMarker.getHeight() - mMarkerBottomOffset));
+//        mEndMarker.setLayoutParams(
+//                new AbsoluteLayout.LayoutParams(
+//                        AbsoluteLayout.LayoutParams.WRAP_CONTENT,
+//                        AbsoluteLayout.LayoutParams.WRAP_CONTENT,
+//                        endX, mWaveformView.getMeasuredHeight() - mEndMarker.getHeight() - mMarkerBottomOffset));
     }
 
     protected Runnable mTimerRunnable = new Runnable() {
@@ -628,7 +619,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     }
 
     protected void resetPositions() {
-        mStartPos = 0;
+        mStartPos = mMaxPos;
         mEndPos = mMaxPos;
     }
 
@@ -641,19 +632,19 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     }
 
     protected void setOffsetGoalStart() {
-        setOffsetGoal(mStartPos - mWidth / 2);
+        setOffsetGoal(mStartPos - mWidth);
     }
 
     protected void setOffsetGoalStartNoUpdate() {
-        setOffsetGoalNoUpdate(mStartPos - mWidth / 2);
+        setOffsetGoalNoUpdate(mStartPos - mWidth);
     }
 
     protected void setOffsetGoalEnd() {
-        setOffsetGoal(mEndPos - mWidth / 2);
+        setOffsetGoal(mEndPos - mWidth);
     }
 
     protected void setOffsetGoalEndNoUpdate() {
-        setOffsetGoalNoUpdate(mEndPos - mWidth / 2);
+        setOffsetGoalNoUpdate(mEndPos - mWidth);
     }
 
     protected void setOffsetGoal(int offset) {
@@ -667,8 +658,8 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         }
 
         mOffsetGoal = offset;
-        if (mOffsetGoal + mWidth / 2 > mMaxPos)
-            mOffsetGoal = mMaxPos - mWidth / 2;
+        if (mOffsetGoal + mWidth > mMaxPos)
+            mOffsetGoal = mMaxPos - mWidth;
         if (mOffsetGoal < 0)
             mOffsetGoal = 0;
     }
@@ -728,42 +719,16 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
             } else {
                 mPlayEndMsec = mWaveformView.pixelsToMillisecs(mEndPos);
             }
-
-            mPlayStartOffset = 0;
-
-            int startFrame = mWaveformView.secondsToFrames(mPlayStartMsec * 0.001);
-            int endFrame = mWaveformView.secondsToFrames(mPlayEndMsec * 0.001);
-            int startByte = mSoundFile.getSeekableFrameOffset(startFrame);
-            int endByte = mSoundFile.getSeekableFrameOffset(endFrame);
-            if (startByte >= 0 && endByte >= 0) {
-                try {
-                    mPlayer.reset();
-                    mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                    FileInputStream subsetInputStream = new FileInputStream(mFile.getAbsolutePath());
-                    mPlayer.setDataSource(subsetInputStream.getFD(), startByte, endByte - startByte);
-                    mPlayer.prepare();
-                    mPlayStartOffset = mPlayStartMsec;
-                } catch (Exception e) {
-                    Log.e(TAG, "Exception trying to play file subset", e);
-                    mPlayer.reset();
-                    mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                    mPlayer.setDataSource(mFile.getAbsolutePath());
-                    mPlayer.prepare();
-                    mPlayStartOffset = 0;
-                }
-            }
-
-            mPlayer.setOnCompletionListener((MediaPlayer mediaPlayer) -> handlePause());
+            mPlayer.setOnCompletionListener(() -> handlePause());
             mIsPlaying = true;
 
-            if (mPlayStartOffset == 0) {
-                mPlayer.seekTo(mPlayStartMsec);
-            }
+            mPlayer.seekTo(mPlayStartMsec);
             mPlayer.start();
             updateDisplay();
             enableDisableButtons();
         } catch (Exception e) {
-            Log.e(TAG, "Exception while playing file", e);
+            Log.e(TAG, "Error while playing sound file", e);
+            mInfo.setText(e.toString());
         }
     }
 
@@ -878,17 +843,12 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         return 5;
     }
 
-    public void setScreenImage(String name, Context context, String packageName) {
-        RequestOptions options = new RequestOptions()
-                .fitCenter()
-                .placeholder(R.drawable.ninja)
-                .error(R.drawable.ninja)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .priority(Priority.HIGH);
-
-        Glide.with(this)
-                .load(context.getResources().getIdentifier(name, "drawable", packageName))
-                .apply(options)
-                .into(screenView);
+    private String convertId(int id) {
+        StringBuilder idStr = new StringBuilder();
+        for (int i = 0; i < 4 - Integer.toString(id / 5).length(); i++) {
+            idStr.append("0");
+        }
+        idStr.append(Integer.toString(id / 5));
+        return idStr.toString();
     }
 }
