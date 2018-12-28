@@ -3,10 +3,12 @@
 
     <string name="start_marker">Start marker</string>
     <string name="end_marker">End marker</string>
-    <string name="rewind">Rewind</string>
+    <string name="rewind">rewind 5 sec</string>
+    <string name="rewind10">rewind 10 sec</string>
     <string name="play">Play</string>
     <string name="stop">Stop</string>
-    <string name="ffwd">Fast forward</string>
+    <string name="ffwd">forward 5 sec</string>
+    <string name="ffwd10">forward 10 sec</string>
     <string name="start_label">Start:</string>
     <string name="end_label">End:</string>
     <string name="progress_dialog_loading">Loading...</string>

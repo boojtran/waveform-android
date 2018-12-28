@@ -63,6 +63,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     protected SoundFile mSoundFile;
     protected File mFile;
     protected String mFilename;
+    protected String imagesPath;
     protected WaveformView mWaveformView;
     protected MarkerView mStartMarker;
     protected MarkerView mEndMarker;
@@ -71,7 +72,9 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     protected TextView mInfo;
     protected ImageButton mPlayButton;
     protected ImageButton mRewindButton;
+    protected ImageButton m10RewindButton;
     protected ImageButton mFfwdButton;
+    protected ImageButton m10FfwdButton;
     protected boolean mKeyDown;
     protected String mCaption = "";
     protected int mWidth;
@@ -127,6 +130,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         mIsPlaying = false;
 
         mFilename = getFileName();
+        imagesPath = getImagesPath();
         mSoundFile = null;
         mKeyDown = false;
 
@@ -207,25 +211,25 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     }
 
     public void waveformZoomIn() {
-        mWaveformView.zoomIn();
-        mStartPos = mWaveformView.getStart();
-        mEndPos = mWaveformView.getEnd();
-        mMaxPos = mWaveformView.maxPos();
-        mOffset = mWaveformView.getOffset();
-        mOffsetGoal = mOffset;
-        enableZoomButtons();
-        updateDisplay();
+//        mWaveformView.zoomIn();
+//        mStartPos = mWaveformView.getStart();
+//        mEndPos = mWaveformView.getEnd();
+//        mMaxPos = mWaveformView.maxPos();
+//        mOffset = mWaveformView.getOffset();
+//        mOffsetGoal = mOffset;
+//        enableZoomButtons();
+//        updateDisplay();
     }
 
     public void waveformZoomOut() {
-        mWaveformView.zoomOut();
-        mStartPos = mWaveformView.getStart();
-        mEndPos = mWaveformView.getEnd();
-        mMaxPos = mWaveformView.maxPos();
-        mOffset = mWaveformView.getOffset();
-        mOffsetGoal = mOffset;
-        enableZoomButtons();
-        updateDisplay();
+//        mWaveformView.zoomOut();
+//        mStartPos = mWaveformView.getStart();
+//        mEndPos = mWaveformView.getEnd();
+//        mMaxPos = mWaveformView.maxPos();
+//        mOffset = mWaveformView.getOffset();
+//        mOffsetGoal = mOffset;
+//        enableZoomButtons();
+//        updateDisplay();
     }
 
     //
@@ -364,9 +368,14 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         mPlayButton = (ImageButton) view.findViewById(R.id.play);
         mPlayButton.setOnClickListener(mPlayListener);
         mRewindButton = (ImageButton) view.findViewById(R.id.rew);
+        m10RewindButton = (ImageButton) view.findViewById(R.id.rew10);
         mRewindButton.setOnClickListener(getRewindListener());
+        m10RewindButton.setOnClickListener(get10RewindListener());
+
         mFfwdButton = (ImageButton) view.findViewById(R.id.ffwd);
+        m10FfwdButton = (ImageButton) view.findViewById(R.id.ffwd10);
         mFfwdButton.setOnClickListener(getFwdListener());
+        m10FfwdButton.setOnClickListener(get10FwdListener());
 
         TextView markStartButton = (TextView) view.findViewById(R.id.mark_start);
         markStartButton.setOnClickListener(mMarkStartListener);
@@ -479,8 +488,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
             int now = mPlayer.getCurrentPosition() + mPlayStartOffset;
             if (lastPos != now / 1000) {
                 lastPos = now / 1000;
-                Log.d("Mrx", "selected pos = " + now / 1000);
-                Bitmap bitmap = BitmapFactory.decodeFile("/sdcard/FUTURE LAB/2287/" + convertId(lastPos) + ".webp");
+                Bitmap bitmap = BitmapFactory.decodeFile(imagesPath + convertId(lastPos) + ".webp");
                 screen.setImageBitmap(bitmap);
             }
 
@@ -749,7 +757,23 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
                     newPos = mPlayStartMsec;
                 mPlayer.seekTo(newPos);
             } else {
-                mStartPos = trap(mStartPos - mWaveformView.secondsToPixels(getStep()));
+                mStartPos = trap(mStartPos - mWaveformView.secondsToPixels(getStep(false)));
+                updateDisplay();
+                mStartMarker.requestFocus();
+                markerFocus(mStartMarker);
+            }
+        }
+    };
+
+    protected OnClickListener m10RewindListener = new OnClickListener() {
+        public void onClick(View sender) {
+            if (mIsPlaying) {
+                int newPos = mPlayer.getCurrentPosition() - 10_000;
+                if (newPos < mPlayStartMsec)
+                    newPos = mPlayStartMsec;
+                mPlayer.seekTo(newPos);
+            } else {
+                mStartPos = trap(mStartPos - mWaveformView.secondsToPixels(getStep(true)));
                 updateDisplay();
                 mStartMarker.requestFocus();
                 markerFocus(mStartMarker);
@@ -765,7 +789,23 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
                     newPos = mPlayEndMsec;
                 mPlayer.seekTo(newPos);
             } else {
-                mStartPos = trap(mStartPos + mWaveformView.secondsToPixels(getStep()));
+                mStartPos = trap(mStartPos + mWaveformView.secondsToPixels(getStep(false)));
+                updateDisplay();
+                mStartMarker.requestFocus();
+                markerFocus(mStartMarker);
+            }
+        }
+    };
+
+    protected OnClickListener m10FfwdListener = new OnClickListener() {
+        public void onClick(View sender) {
+            if (mIsPlaying) {
+                int newPos = 10_000 + mPlayer.getCurrentPosition();
+                if (newPos > mPlayEndMsec)
+                    newPos = mPlayEndMsec;
+                mPlayer.seekTo(newPos);
+            } else {
+                mStartPos = trap(mStartPos + mWaveformView.secondsToPixels(getStep(true)));
                 updateDisplay();
                 mStartMarker.requestFocus();
                 markerFocus(mStartMarker);
@@ -819,6 +859,8 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
 
     protected abstract String getFileName();
 
+    protected abstract String getImagesPath();
+
     protected List<Segment> getSegments() {
         return null;
     }
@@ -827,11 +869,19 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         return mFfwdListener;
     }
 
+    protected OnClickListener get10FwdListener() {
+        return m10FfwdListener;
+    }
+
     protected OnClickListener getRewindListener() {
         return mRewindListener;
     }
 
-    protected int getStep() {
+    protected OnClickListener get10RewindListener() {
+        return m10RewindListener;
+    }
+
+    protected int getStep(Boolean isTen) {
         int maxSeconds = (int) mWaveformView.pixelsToSeconds(mWaveformView.maxPos());
         if (maxSeconds / 3600 > 0) {
             return 600;
@@ -840,7 +890,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         } else if (maxSeconds / 300 > 0) {
             return 60;
         }
-        return 5;
+        return (isTen) ? 10 : 5;
     }
 
     private String convertId(int id) {

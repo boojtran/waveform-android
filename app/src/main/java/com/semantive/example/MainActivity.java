@@ -1,14 +1,16 @@
 package com.semantive.example;
 
-import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+
 import com.semantive.waveformandroid.waveform.Segment;
 import com.semantive.waveformandroid.waveform.WaveformFragment;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,6 +41,18 @@ public class MainActivity extends AppCompatActivity {
             return "/sdcard/janob.mp3";
         }
 
+
+        /**
+         * Provide path to your image file.
+         *
+         * @return
+         */
+
+        @Override
+        protected String getImagesPath() {
+            return "/sdcard/FUTURE LAB/2287/";
+        }
+
         /**
          * Optional - provide list of segments (start and stop values in seconds) and their corresponding colors
          *
@@ -54,8 +68,16 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected synchronized void updateDisplay() {
+            Log.d("MrxAudio", "time = ");
 //            setScreenImage("tom_3", getActivity(), "com.semantive.example");
             super.updateDisplay();
+        }
+
+
+        @Override
+        public void onPause() {
+            Log.d("MrxKjm", "mEndPos = " + formatTime(mStartPos));
+            super.onPause();
         }
     }
 }

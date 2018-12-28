@@ -169,26 +169,26 @@ public class WaveformView extends View {
         nextSegment = null;
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        mScaleGestureDetector.onTouchEvent(event);
-        if (mGestureDetector.onTouchEvent(event)) {
-            return true;
-        }
-
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                mListener.waveformTouchStart(event.getX());
-                break;
-            case MotionEvent.ACTION_MOVE:
-                mListener.waveformTouchMove(event.getX());
-                break;
-            case MotionEvent.ACTION_UP:
-                mListener.waveformTouchEnd();
-                break;
-        }
-        return true;
-    }
+//    @Override
+//    public boolean onTouchEvent(MotionEvent event) {
+//        mScaleGestureDetector.onTouchEvent(event);
+//        if (mGestureDetector.onTouchEvent(event)) {
+//            return true;
+//        }
+//
+//        switch (event.getAction()) {
+//            case MotionEvent.ACTION_DOWN:
+//                mListener.waveformTouchStart(event.getX());
+//                break;
+//            case MotionEvent.ACTION_MOVE:
+//                mListener.waveformTouchMove(event.getX());
+//                break;
+//            case MotionEvent.ACTION_UP:
+//                mListener.waveformTouchEnd();
+//                break;
+//        }
+//        return true;
+//    }
 
     public boolean hasSoundFile() {
         return mSoundFile != null;

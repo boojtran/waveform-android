@@ -28,7 +28,7 @@
         <com.semantive.waveformandroid.waveform.view.WaveformView
             android:id="@+id/waveform"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent" />
+            android:layout_height="fill_parent"/>
 
         <com.semantive.waveformandroid.waveform.view.MarkerView
             android:id="@+id/startmarker"
@@ -44,7 +44,7 @@
             android:layout_height="wrap_content"
             android:contentDescription="@string/end_marker"
             android:nextFocusUp="@+id/startmarker"
-            android:nextFocusDown="@+id/info"/>
+            android:nextFocusDown="@+id/info" />
 
     </AbsoluteLayout>
 
@@ -71,6 +71,16 @@
         app:layout_constraintTop_toBottomOf="@id/wave">
 
         <ImageButton
+            android:id="@+id/rew10"
+            style="@android:style/MediaButton"
+            android:layout_width="64dip"
+            android:layout_height="52dip"
+            android:layout_marginTop="6dip"
+            android:layout_marginBottom="6dip"
+            android:contentDescription="@string/rewind10"
+            android:src="@android:drawable/ic_media_previous" />
+
+        <ImageButton
             android:id="@+id/rew"
             style="@android:style/MediaButton"
             android:layout_width="64dip"
@@ -78,7 +88,7 @@
             android:layout_marginTop="6dip"
             android:layout_marginBottom="6dip"
             android:contentDescription="@string/rewind"
-            android:src="@android:drawable/ic_media_previous" />
+            android:src="@drawable/ic_fast_rewind_black_24dp" />
 
         <ImageButton
             android:id="@+id/play"
@@ -99,6 +109,17 @@
             android:layout_marginRight="5dip"
             android:layout_marginBottom="6dip"
             android:contentDescription="@string/ffwd"
+            android:src="@drawable/ic_fast_forward_black_24dp" />
+
+        <ImageButton
+            android:id="@+id/ffwd10"
+            style="@android:style/MediaButton"
+            android:layout_width="64dip"
+            android:layout_height="52dip"
+            android:layout_marginTop="6dip"
+            android:layout_marginRight="5dip"
+            android:layout_marginBottom="6dip"
+            android:contentDescription="@string/ffwd10"
             android:src="@android:drawable/ic_media_next" />
 
     </LinearLayout>
