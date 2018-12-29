@@ -1,6 +1,8 @@
 package com.semantive.example;
 
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -38,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected String getFileName() {
-            return "/sdcard/janob.mp3";
+            return "/sdcard/FUTURE LAB/1546058028.m4a";
         }
 
 
@@ -53,6 +55,14 @@ public class MainActivity extends AppCompatActivity {
             return "/sdcard/FUTURE LAB/2287/";
         }
 
+        @Override
+        protected Drawable getBackground() {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                return getContext().getDrawable(R.drawable.ninja);
+            }
+            return null;
+        }
+
         /**
          * Optional - provide list of segments (start and stop values in seconds) and their corresponding colors
          *
@@ -60,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
          */
         @Override
         protected List<Segment> getSegments() {
+
             return Arrays.asList(
                     new Segment(55.2, 55.8, Color.rgb(238, 23, 104)),
                     new Segment(56.2, 56.6, Color.rgb(238, 23, 104)),

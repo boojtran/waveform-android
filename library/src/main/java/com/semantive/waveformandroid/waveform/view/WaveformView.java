@@ -20,6 +20,7 @@ import android.graphics.Canvas;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -169,26 +170,26 @@ public class WaveformView extends View {
         nextSegment = null;
     }
 
-//    @Override
-//    public boolean onTouchEvent(MotionEvent event) {
-//        mScaleGestureDetector.onTouchEvent(event);
-//        if (mGestureDetector.onTouchEvent(event)) {
-//            return true;
-//        }
-//
-//        switch (event.getAction()) {
-//            case MotionEvent.ACTION_DOWN:
-//                mListener.waveformTouchStart(event.getX());
-//                break;
-//            case MotionEvent.ACTION_MOVE:
-//                mListener.waveformTouchMove(event.getX());
-//                break;
-//            case MotionEvent.ACTION_UP:
-//                mListener.waveformTouchEnd();
-//                break;
-//        }
-//        return true;
-//    }
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        mScaleGestureDetector.onTouchEvent(event);
+        if (mGestureDetector.onTouchEvent(event)) {
+            return true;
+        }
+
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                mListener.waveformTouchStart(event.getX());
+                break;
+            case MotionEvent.ACTION_MOVE:
+                mListener.waveformTouchMove(event.getX());
+                break;
+            case MotionEvent.ACTION_UP:
+                mListener.waveformTouchEnd();
+                break;
+        }
+        return true;
+    }
 
     public boolean hasSoundFile() {
         return mSoundFile != null;
@@ -205,13 +206,13 @@ public class WaveformView extends View {
         return mInitialized;
     }
 
-    public int getZoomLevel() {
-        return mZoomLevel;
-    }
+//    public int getZoomLevel() {
+//        return mZoomLevel;
+//    }
 
-    public void setZoomLevel(int zoomLevel) {
-        mZoomLevel = zoomLevel;
-    }
+//    public void setZoomLevel(int zoomLevel) {
+//        mZoomLevel = zoomLevel;
+//    }
 
     public boolean canZoomIn() {
         return (mZoomLevel < mNumZoomLevels - 1);
@@ -588,7 +589,6 @@ public class WaveformView extends View {
                 }
             }
         }
-
         mInitialized = true;
     }
 

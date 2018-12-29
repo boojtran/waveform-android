@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -21,6 +22,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.semantive.waveformandroid.R;
 import com.semantive.waveformandroid.waveform.soundfile.SamplePlayer;
 import com.semantive.waveformandroid.waveform.soundfile.SoundFile;
@@ -107,6 +109,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     protected int mMarkerBottomOffset;
     protected ImageView screen;
     protected int lastPos = -1;
+    protected Drawable mBackground;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -131,6 +134,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
 
         mFilename = getFileName();
         imagesPath = getImagesPath();
+        mBackground = getBackground();
         mSoundFile = null;
         mKeyDown = false;
 
@@ -211,14 +215,14 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     }
 
     public void waveformZoomIn() {
-//        mWaveformView.zoomIn();
-//        mStartPos = mWaveformView.getStart();
-//        mEndPos = mWaveformView.getEnd();
-//        mMaxPos = mWaveformView.maxPos();
-//        mOffset = mWaveformView.getOffset();
-//        mOffsetGoal = mOffset;
-//        enableZoomButtons();
-//        updateDisplay();
+        mWaveformView.zoomIn();
+        mStartPos = mWaveformView.getStart();
+        mEndPos = mWaveformView.getEnd();
+        mMaxPos = mWaveformView.maxPos();
+        mOffset = mWaveformView.getOffset();
+        mOffsetGoal = mOffset;
+        enableZoomButtons();
+        updateDisplay();
     }
 
     public void waveformZoomOut() {
@@ -416,6 +420,8 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         mEndVisible = true;
         screen = view.findViewById(R.id.screen);
 
+        if (mBackground != null)
+            screen.setBackground(mBackground);
         updateDisplay();
     }
 
@@ -860,6 +866,8 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     protected abstract String getFileName();
 
     protected abstract String getImagesPath();
+
+    protected abstract Drawable getBackground();
 
     protected List<Segment> getSegments() {
         return null;
