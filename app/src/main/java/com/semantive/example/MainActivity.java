@@ -12,7 +12,6 @@ import com.semantive.waveformandroid.waveform.WaveformFragment;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -83,7 +82,6 @@ public class MainActivity extends AppCompatActivity {
 //            setScreenImage("tom_3", getActivity(), "com.semantive.example");
             super.updateDisplay();
         }
-
 
         @Override
         public void onPause() {
