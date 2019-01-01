@@ -429,7 +429,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         mFile = new File(mFilename);
         mLoadingLastUpdateTime = System.currentTimeMillis();
         mLoadingKeepGoing = true;
-        mProgressDialog = new ProgressDialog(getActivity());
+        mProgressDialog = new ProgressDialog(getActivity(), R.style.AppCompatAlertDialogStyle);
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         mProgressDialog.setTitle(R.string.progress_dialog_loading);
         mProgressDialog.setCancelable(false);

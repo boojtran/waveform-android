@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="start_marker">Markerni ishga tushiring</string>
+    <string name="end_marker">Marker ishini yakunlang</string>
+    <string name="rewind">5 sekund orqaga qaytarish</string>
+    <string name="rewind10">10 sekund orqaga qaytarish</string>
+    <string name="play">Play</string>
+    <string name="stop">To\'xtatish</string>
+    <string name="ffwd">10 sekund oldinga o\'tkazish</string>
+    <string name="ffwd10">10 sekund oldinga o\'tkazish</string>
+    <string name="start_label">Boshlang\'ich koordinata:</string>
+    <string name="end_label">Oxirgi koordinata:</string>
+    <string name="progress_dialog_loading">Yuklanmoqda…</string>
+    <string name="time_seconds">sekondlar</string>
+</resources>

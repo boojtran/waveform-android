@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="start_marker">Начальный маркер</string>
+    <string name="end_marker">Конечные маркер</string>
+    <string name="rewind">Перемотка 5 сек</string>
+    <string name="rewind10">Перемотка 10 сек</string>
+    <string name="play">Play</string>
+    <string name="stop">Стоп</string>
+    <string name="ffwd">Вперед 5 сек</string>
+    <string name="ffwd10">Вперед 10 сек</string>
+    <string name="start_label">Начните:</string>
+    <string name="end_label">Конец:</string>
+    <string name="progress_dialog_loading">Загрузка…</string>
+    <string name="time_seconds">Секунд</string>
+</resources>
