@@ -7,6 +7,7 @@
     <color name="playback_indicator">#ff3700</color>
     <color name="grid_line">#6D6D6D</color>
     <color name="timecode">#000000</color>
+    <color name="future_lab_color">#37b46d</color>
     <color name="black_overlow">#e8000000</color>
     <color name="timecode_shadow">#aa000000</color>
 </resources>

@@ -7,7 +7,7 @@
     <string name="rewind10">10 sekund orqaga qaytarish</string>
     <string name="play">Play</string>
     <string name="stop">To\'xtatish</string>
-    <string name="ffwd">10 sekund oldinga o\'tkazish</string>
+    <string name="ffwd">5 sekund oldinga o\'tkazish</string>
     <string name="ffwd10">10 sekund oldinga o\'tkazish</string>
     <string name="start_label">Boshlang\'ich koordinata:</string>
     <string name="end_label">Oxirgi koordinata:</string>

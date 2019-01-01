@@ -6,8 +6,7 @@
     </style>
 
     <style name="AppCompatAlertDialogStyle" parent="Theme.AppCompat.Light.Dialog.Alert">
-        <item name="colorAccent">#37b46d</item>
+        <item name="colorAccent">@color/future_lab_color</item>
     </style>
-    In this  "andr
 
 </resources>

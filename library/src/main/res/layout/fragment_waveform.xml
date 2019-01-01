@@ -19,17 +19,17 @@
         android:id="@+id/wave"
         android:layout_width="wrap_content"
         android:layout_height="0px"
+        android:background="@drawable/wave_background"
         app:layout_constraintBottom_toTopOf="@id/control_buttons"
         app:layout_constraintHeight_percent="0.1"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/screen"
-        android:background="@color/selection_border">
+        app:layout_constraintTop_toBottomOf="@id/screen">
 
         <com.semantive.waveformandroid.waveform.view.WaveformView
             android:id="@+id/waveform"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"/>
+            android:layout_height="fill_parent" />
 
         <com.semantive.waveformandroid.waveform.view.MarkerView
             android:id="@+id/startmarker"
@@ -63,7 +63,7 @@
         android:id="@+id/control_buttons"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:background="@color/black_overlow"
+        android:background="@color/future_lab_color"
         android:gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHeight_percent="0.05"
