@@ -477,6 +477,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
                         onDialogAction();
                     }
                 });
+        mProgressDialog.setCancelable(false);
         mProgressDialog.show();
 
         final int[] i = {0};
