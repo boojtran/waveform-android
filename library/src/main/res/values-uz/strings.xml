@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ringtone_type_label">Qo\'ng\'iroq turi</string>
+    <string name="progress_dialog_saving">Saqlanmoqda...</string>
+    <string name="are_you_sure">Ishonchingiz komilmi?</string>
+    <string name="wont_be_able_to_recover_this_file">Ushbu faylni qayta tiklab bo\'lmaydi!</string>
+    <string name="yes">Ha</string>
+    <string name="no">Yo\'q</string>
+    <string name="error">Xatolik</string>
+    <string name="repeat">Qayta urinish</string>
+    <string name="error_with_save_file">Faylni saqlash bilan bog\'liq xatolik bo\'ldi!</string>
+</resources>

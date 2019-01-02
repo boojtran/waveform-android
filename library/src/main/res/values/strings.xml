@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ringtone_type_label">Ringtone type</string>
+    <string name="progress_dialog_saving">Saving</string>
+    <string name="are_you_sure">Are you sure?</string>
+    <string name="wont_be_able_to_recover_this_file">Won\'t be able to recover this file!</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="error">Error</string>
+    <string name="repeat">Repeat</string>
+    <string name="error_with_save_file">Error with save file</string>
+</resources>

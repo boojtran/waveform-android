@@ -1,16 +1,29 @@
 package com.semantive.waveformandroid.waveform;
 
 import android.app.ProgressDialog;
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.media.RingtoneManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
+import android.os.Message;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.text.Editable;
+import android.text.SpannableStringBuilder;
 import android.text.TextWatcher;
+import android.text.style.StyleSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,6 +34,7 @@ import android.widget.AbsoluteLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.semantive.waveformandroid.R;
@@ -31,7 +45,14 @@ import com.semantive.waveformandroid.waveform.view.WaveformView;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.RandomAccessFile;
+import java.io.StringWriter;
 import java.util.List;
+
+import cn.pedant.SweetAlert.SweetAlertDialog;
+
+import static android.app.Activity.RESULT_CANCELED;
 
 /*
  * Copyright (C) 2008 Google Inc.
@@ -61,7 +82,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
 
     protected long mLoadingLastUpdateTime;
     protected boolean mLoadingKeepGoing;
-    protected ProgressDialog mProgressDialog;
+    protected SweetAlertDialog mProgressDialog;
     protected SoundFile mSoundFile;
     protected File mFile;
     protected String mFilename;
@@ -110,6 +131,8 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     protected ImageView screen;
     protected int lastPos = -1;
     protected Drawable mBackground;
+    private int mNewFileKind;
+    private Thread mSaveSoundFileThread;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -136,6 +159,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         imagesPath = getImagesPath();
         mBackground = getBackground();
         mSoundFile = null;
+        mSaveSoundFileThread = null;
         mKeyDown = false;
 
         mHandler = new Handler();
@@ -150,10 +174,21 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
             mPlayer.release();
             mPlayer = null;
         }
+        closeThread(mSaveSoundFileThread);
 
         mSoundFile = null;
+        mSaveSoundFileThread = null;
         mWaveformView = null;
         super.onDestroy();
+    }
+
+    private void closeThread(Thread thread) {
+        if (thread != null && thread.isAlive()) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+            }
+        }
     }
 
     //
@@ -429,18 +464,50 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         mFile = new File(mFilename);
         mLoadingLastUpdateTime = System.currentTimeMillis();
         mLoadingKeepGoing = true;
-        mProgressDialog = new ProgressDialog(getActivity(), R.style.AppCompatAlertDialogStyle);
-        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        mProgressDialog.setTitle(R.string.progress_dialog_loading);
-        mProgressDialog.setCancelable(false);
-        mProgressDialog.setOnCancelListener((DialogInterface dialog) -> mLoadingKeepGoing = false);
+        Context context = getContext();
+        if (context != null)
+            mProgressDialog = new SweetAlertDialog(context, SweetAlertDialog.PROGRESS_TYPE);
+        mProgressDialog.setTitleText(R.string.progress_dialog_loading)
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        mLoadingKeepGoing = false;
+                    }
+                });
         mProgressDialog.show();
 
+        final int[] i = {0};
         final SoundFile.ProgressListener listener = (double fractionComplete) -> {
             long now = System.currentTimeMillis();
             if (now - mLoadingLastUpdateTime > 100) {
-                mProgressDialog.setProgress(
-                        (int) (mProgressDialog.getMax() * fractionComplete));
+                if ((i[0] > 6)) {
+                    i[0] = 0;
+                } else {
+                    i[0]++;
+                }
+                switch (i[0]) {
+                    case 0:
+                        mProgressDialog.getProgressHelper().setBarColor(getResources().getColor(R.color.blue_btn_bg_color));
+                        break;
+                    case 1:
+                        mProgressDialog.getProgressHelper().setBarColor(getResources().getColor(R.color.material_deep_teal_50));
+                        break;
+                    case 2:
+                        mProgressDialog.getProgressHelper().setBarColor(getResources().getColor(R.color.success_stroke_color));
+                        break;
+                    case 3:
+                        mProgressDialog.getProgressHelper().setBarColor(getResources().getColor(R.color.material_deep_teal_20));
+                        break;
+                    case 4:
+                        mProgressDialog.getProgressHelper().setBarColor(getResources().getColor(R.color.material_blue_grey_80));
+                        break;
+                    case 5:
+                        mProgressDialog.getProgressHelper().setBarColor(getResources().getColor(R.color.warning_stroke_color));
+                        break;
+                    case 6:
+                        mProgressDialog.getProgressHelper().setBarColor(getResources().getColor(R.color.success_stroke_color));
+                        break;
+                }
                 mLoadingLastUpdateTime = now;
             }
             return mLoadingKeepGoing;
@@ -454,7 +521,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
                     mPlayer = new SamplePlayer(mSoundFile);
                 } catch (final Exception e) {
                     Log.e(TAG, "Error while loading sound file", e);
-                    mProgressDialog.dismiss();
+                    mProgressDialog.dismissWithAnimation();
                     mInfo.setText(e.toString());
                     return;
                 }
@@ -485,7 +552,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
                 mSoundFile.getAvgBitrateKbps() + " kbps, " +
                 formatTime(mMaxPos) + " " + getResources().getString(R.string.time_seconds);
         mInfo.setText(mCaption);
-        mProgressDialog.dismiss();
+        mProgressDialog.dismissWithAnimation();
         updateDisplay();
     }
 
@@ -749,6 +816,333 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     protected void enableZoomButtons() {
     }
 
+    public void onSave(final double endTime) {
+        if (mIsPlaying) {
+            handlePause();
+        }
+        Context context = getContext();
+        if (context != null) {
+            SweetAlertDialog dialog = new SweetAlertDialog(context)
+                    .setTitleText(getString(R.string.are_you_sure))
+                    .setConfirmText(getString(R.string.yes))
+                    .setConfirmClickListener(new SweetAlertDialog.OnSweetClickListener() {
+                        @Override
+                        public void onClick(SweetAlertDialog sDialog) {
+                            saveRingtone("file name", endTime);
+                            sDialog.dismissWithAnimation();
+                        }
+                    })
+                    .setCancelText(getString(R.string.no))
+                    .setCancelClickListener(new SweetAlertDialog.OnSweetClickListener() {
+                        @Override
+                        public void onClick(SweetAlertDialog sweetAlertDialog) {
+                            sweetAlertDialog.dismissWithAnimation();
+                        }
+                    });
+            dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+                @Override
+                public void onShow(DialogInterface dialog) {
+                    SweetAlertDialog alertDialog = (SweetAlertDialog) dialog;
+                    TextView text = (TextView) alertDialog.findViewById(R.id.title_text);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                        text.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                    }
+                    SpannableStringBuilder snapBuilder = new SpannableStringBuilder();
+                    snapBuilder.append(getString(R.string.are_you_sure));
+                    snapBuilder.setSpan(new StyleSpan(Typeface.BOLD), 0, snapBuilder.length(), 0);
+                    snapBuilder.append("\n\n");
+                    snapBuilder.append(getString(R.string.wont_be_able_to_recover_this_file));
+                    text.setSingleLine(false);
+                    text.setText(snapBuilder);
+                }
+            });
+            dialog.show();
+        }
+    }
+
+    private void saveRingtone(final CharSequence title, final double endTime) {
+        double startTime = 0;
+//        double endTime = mWaveformView.pixelsToSeconds(mStartPos);
+        final int startFrame = mWaveformView.secondsToFrames(startTime);
+        final int endFrame = mWaveformView.secondsToFrames(endTime);
+        final int duration = (int) (endTime - startTime + 0.5);
+
+        // Create an indeterminate progress dialog
+        Context context = getContext();
+        if (context != null)
+            mProgressDialog = new SweetAlertDialog(context, SweetAlertDialog.PROGRESS_TYPE);
+        mProgressDialog.setTitle(R.string.progress_dialog_saving);
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.show();
+
+        // Save the sound file in a background thread
+        mSaveSoundFileThread = new Thread() {
+            public void run() {
+                // Try AAC first.
+                String outPath = makeRingtoneFilename();
+                if (outPath == null) {
+                    Runnable runnable = new Runnable() {
+                        public void run() {
+                            showFinalAlert(new Exception(), "no unique file name");
+                        }
+                    };
+                    mHandler.post(runnable);
+                    return;
+                }
+                File outFile = new File(outPath);
+                Boolean fallbackToWAV = false;
+                try {
+                    // Write the new file
+                    mSoundFile.WriteFile(outFile, startFrame, endFrame - startFrame);
+                } catch (Exception e) {
+                    // log the error and try to create a .wav file instead
+                    if (outFile.exists()) {
+                        outFile.delete();
+                    }
+                    StringWriter writer = new StringWriter();
+                    e.printStackTrace(new PrintWriter(writer));
+                    Log.e("Ringdroid", "Error: Failed to create " + outPath);
+                    Log.e("Ringdroid", writer.toString());
+                    fallbackToWAV = true;
+                }
+
+                // Try to create a .wav file if creating a .m4a file failed.
+                if (fallbackToWAV) {
+                    outPath = makeRingtoneFilename();
+                    if (outPath == null) {
+                        Runnable runnable = new Runnable() {
+                            public void run() {
+                                showFinalAlert(new Exception(), "no_unique_filename");
+                            }
+                        };
+                        mHandler.post(runnable);
+                        return;
+                    }
+                    outFile = new File(outPath);
+                    try {
+                        // create the .wav file
+                        mSoundFile.WriteWAVFile(outFile, startFrame, endFrame - startFrame);
+                    } catch (Exception e) {
+                        // Creating the .wav file also failed. Stop the progress dialog, show an
+                        // error message and exit.
+                        mProgressDialog.dismissWithAnimation();
+                        if (outFile.exists()) {
+                            outFile.delete();
+                        }
+//                        mInfoContent = e.toString();
+//                        runOnUiThread(new Runnable() {
+//                            public void run() {
+//                                mInfo.setText(mInfoContent);
+//                            }
+//                        });
+
+                        CharSequence errorMessage;
+                        if (e.getMessage() != null
+                                && e.getMessage().equals("No space left on device")) {
+                            errorMessage = "no_space_error";
+                            e = null;
+                        } else {
+                            errorMessage = "write_error";
+                        }
+                        final CharSequence finalErrorMessage = errorMessage;
+                        final Exception finalException = e;
+                        Runnable runnable = new Runnable() {
+                            public void run() {
+                                showFinalAlert(finalException, finalErrorMessage);
+                            }
+                        };
+                        mHandler.post(runnable);
+                        return;
+                    }
+                }
+
+                // Try to load the new file to make sure it worked
+                try {
+                    final SoundFile.ProgressListener listener =
+                            new SoundFile.ProgressListener() {
+                                public boolean reportProgress(double frac) {
+                                    // Do nothing - we're not going to try to
+                                    // estimate when reloading a saved sound
+                                    // since it's usually fast, but hard to
+                                    // estimate anyway.
+                                    return true;  // Keep going
+                                }
+                            };
+                    SoundFile.create(outPath, listener);
+                } catch (final Exception e) {
+                    mProgressDialog.dismissWithAnimation();
+                    e.printStackTrace();
+//                    mInfoContent = e.toString();
+//                    runOnUiThread(new Runnable() {
+//                        public void run() {
+//                            mInfo.setText(mInfoContent);
+//                        }
+//                    });
+
+                    Runnable runnable = new Runnable() {
+                        public void run() {
+                            showFinalAlert(e, "write_error");
+                        }
+                    };
+                    mHandler.post(runnable);
+                    return;
+                }
+
+                mProgressDialog.dismissWithAnimation();
+
+                final String finalOutPath = outPath;
+                Runnable runnable = new Runnable() {
+                    public void run() {
+                        afterSavingRingtone(title,
+                                finalOutPath,
+                                duration);
+                    }
+                };
+                mHandler.post(runnable);
+            }
+        };
+        mSaveSoundFileThread.start();
+    }
+
+    private String makeRingtoneFilename() {
+
+        String path = mFilename;
+        try {
+            RandomAccessFile f = new RandomAccessFile(new File(path), "r");
+            f.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return path;
+    }
+
+    private void afterSavingRingtone(CharSequence title,
+                                     String outPath,
+                                     int duration) {
+        File outFile = new File(outPath);
+        long fileSize = outFile.length();
+        if (fileSize <= 512) {
+            outFile.delete();
+            Context context = getContext();
+            if (context != null) {
+                SweetAlertDialog dialog = new SweetAlertDialog(context, SweetAlertDialog.ERROR_TYPE)
+                        .setTitleText(getString(R.string.error))
+                        .setConfirmText(getString(R.string.repeat))
+                        .setConfirmClickListener(new SweetAlertDialog.OnSweetClickListener() {
+                            @Override
+                            public void onClick(SweetAlertDialog sDialog) {
+                                sDialog.dismissWithAnimation();
+                            }
+                        });
+                dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+                    @Override
+                    public void onShow(DialogInterface dialog) {
+                        SweetAlertDialog alertDialog = (SweetAlertDialog) dialog;
+                        TextView text = (TextView) alertDialog.findViewById(R.id.title_text);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                            text.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                        }
+                        SpannableStringBuilder snapBuilder = new SpannableStringBuilder();
+                        snapBuilder.append(getString(R.string.error));
+                        snapBuilder.setSpan(new StyleSpan(Typeface.BOLD), 0, snapBuilder.length(), 0);
+                        snapBuilder.append("\n\n");
+                        snapBuilder.append(getString(R.string.error_with_save_file));
+                        text.setSingleLine(false);
+                        text.setText(snapBuilder);
+                    }
+                });
+                dialog.show();
+            }
+            return;
+        }
+
+        // Create the database record, pointing to the existing file path
+        String mimeType;
+        if (outPath.endsWith(".m4a")) {
+            mimeType = "audio/mp4a-latm";
+        } else if (outPath.endsWith(".wav")) {
+            mimeType = "audio/wav";
+        } else {
+            // This should never happen.
+            mimeType = "audio/mpeg";
+        }
+
+        String artist = "" + "artist_name";
+
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.MediaColumns.DATA, outPath);
+        values.put(MediaStore.MediaColumns.TITLE, title.toString());
+        values.put(MediaStore.MediaColumns.SIZE, fileSize);
+        values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
+
+        values.put(MediaStore.Audio.Media.ARTIST, artist);
+        values.put(MediaStore.Audio.Media.DURATION, duration);
+
+        values.put(MediaStore.Audio.Media.IS_RINGTONE,
+                mNewFileKind == FileSaveDialog.FILE_KIND_RINGTONE);
+        values.put(MediaStore.Audio.Media.IS_NOTIFICATION,
+                mNewFileKind == FileSaveDialog.FILE_KIND_NOTIFICATION);
+        values.put(MediaStore.Audio.Media.IS_ALARM,
+                mNewFileKind == FileSaveDialog.FILE_KIND_ALARM);
+        values.put(MediaStore.Audio.Media.IS_MUSIC,
+                mNewFileKind == FileSaveDialog.FILE_KIND_MUSIC);
+
+        // Insert it into the database
+        Uri uri = MediaStore.Audio.Media.getContentUriForPath(outPath);
+//        final Uri newUri = getContentResolver().insert(uri, values);
+//        setResult(RESULT_OK, new Intent().setData(newUri));
+
+        // If Ringdroid was launched to get content, just return
+//        if (mWasGetContentIntent) {
+//            finish();
+//            return;
+//        }
+
+        // There's nothing more to do with music or an alarm.  Show a
+        // success message and then quit.
+        if (mNewFileKind == FileSaveDialog.FILE_KIND_MUSIC ||
+                mNewFileKind == FileSaveDialog.FILE_KIND_ALARM) {
+//            Toast.makeText(getContext(),
+//                    "save_success_message",
+//                    Toast.LENGTH_SHORT)
+//                    .show();
+            return;
+        }
+
+        // If it's a notification, give the user the option of making
+        // this their default notification.  If they say no, we're finished.
+        if (mNewFileKind == FileSaveDialog.FILE_KIND_NOTIFICATION) {
+            new AlertDialog.Builder(getContext())
+                    .setTitle("alert_title_success")
+                    .setMessage("set_default_notification")
+                    .setPositiveButton("yes",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog,
+                                                    int whichButton) {
+                                    RingtoneManager.setActualDefaultRingtoneUri(
+                                            getContext(),
+                                            RingtoneManager.TYPE_NOTIFICATION,
+                                            Uri.fromFile(mFile));
+                                }
+                            })
+                    .setNegativeButton(
+                            "no",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    dialog.dismiss();
+                                }
+                            })
+                    .setCancelable(false)
+                    .show();
+            return;
+        }
+
+        // If we get here, that means the type is a ringtone.  There are
+        // three choices: make this your default ringtone, assign it to a
+        // contact, or do nothing.
+    }
+
     protected OnClickListener mPlayListener = new OnClickListener() {
         public void onClick(View sender) {
             onPlay(mStartPos);
@@ -908,5 +1302,35 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         }
         idStr.append(Integer.toString(id / 5));
         return idStr.toString();
+    }
+
+    private void showFinalAlert(Exception e, CharSequence message) {
+        CharSequence title;
+        if (e != null) {
+            Log.e("Ringdroid", "Error: " + message);
+            e.printStackTrace();
+            title = "faile";
+        } else {
+            Log.v("Ringdroid", "Success: " + message);
+            title = "success";
+        }
+
+        new AlertDialog.Builder(getContext())
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton(
+                        "ok",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,
+                                                int whichButton) {
+                                dialog.dismiss();
+                            }
+                        })
+                .setCancelable(false)
+                .show();
+    }
+
+    private void showFinalAlert(Exception e, int messageResourceId) {
+        showFinalAlert(e, getResources().getText(messageResourceId));
     }
 }

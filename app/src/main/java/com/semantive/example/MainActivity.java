@@ -84,6 +84,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
+        public void onStart() {
+            super.onStart();
+        }
+
+        @Override
         public void onPause() {
             Log.d("MrxKjm", "mEndPos = " + formatTime(mStartPos));
             super.onPause();

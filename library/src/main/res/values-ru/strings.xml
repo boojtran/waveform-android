@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ringtone_type_label">Тип рингтона</string>
+    <string name="progress_dialog_saving">Cохранение...</string>
+    <string name="are_you_sure">Ты уверен?</string>
+    <string name="wont_be_able_to_recover_this_file">Не смогу восстановить этот файл!</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="error">Oшибка</string>
+    <string name="repeat">Повторение</string>
+    <string name="error_with_save_file">При сохранении файла произошла ошибка!</string>
+</resources>
