@@ -31,6 +31,13 @@ public class MainActivity extends AppCompatActivity {
 
     public static class CustomWaveformFragment extends WaveformFragment {
 
+        @Override
+        protected synchronized void onDialogAction() {
+            super.onDialogAction();
+            Log.d("MrxDialogAction","on dialog isFileCanceled = "+isFileCanceled);
+            Log.d("MrxDialogAction","on dialog isFileSaved = "+isFileSaved);
+        }
+
         /**
          * Provide path to your audio file.
          *
@@ -85,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onStart() {
+            onSave();
             super.onStart();
         }
 

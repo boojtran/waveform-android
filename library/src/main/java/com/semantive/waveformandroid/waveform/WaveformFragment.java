@@ -133,6 +133,8 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     protected Drawable mBackground;
     private int mNewFileKind;
     private Thread mSaveSoundFileThread;
+    public Boolean isFileSaved = false;
+    public Boolean isFileCanceled = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -472,6 +474,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
                     @Override
                     public void onCancel(DialogInterface dialog) {
                         mLoadingKeepGoing = false;
+                        onDialogAction();
                     }
                 });
         mProgressDialog.show();
@@ -554,6 +557,10 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         mInfo.setText(mCaption);
         mProgressDialog.dismissWithAnimation();
         updateDisplay();
+    }
+
+    protected synchronized void onDialogAction() {
+
     }
 
     protected synchronized void updateDisplay() {
@@ -816,7 +823,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
     protected void enableZoomButtons() {
     }
 
-    public void onSave(final double endTime) {
+    public void onSave() {
         if (mIsPlaying) {
             handlePause();
         }
@@ -828,7 +835,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
                     .setConfirmClickListener(new SweetAlertDialog.OnSweetClickListener() {
                         @Override
                         public void onClick(SweetAlertDialog sDialog) {
-                            saveRingtone("file name", endTime);
+                            saveRingtone("file name");
                             sDialog.dismissWithAnimation();
                         }
                     })
@@ -836,6 +843,9 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
                     .setCancelClickListener(new SweetAlertDialog.OnSweetClickListener() {
                         @Override
                         public void onClick(SweetAlertDialog sweetAlertDialog) {
+                            isFileCanceled = true;
+                            onDialogAction();
+                            Log.d("MrxOnDialog", "isFile Cancel" + isFileCanceled);
                             sweetAlertDialog.dismissWithAnimation();
                         }
                     });
@@ -860,9 +870,9 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         }
     }
 
-    private void saveRingtone(final CharSequence title, final double endTime) {
+    private void saveRingtone(final CharSequence title) {
         double startTime = 0;
-//        double endTime = mWaveformView.pixelsToSeconds(mStartPos);
+        double endTime = mWaveformView.pixelsToSeconds(mStartPos);
         final int startFrame = mWaveformView.secondsToFrames(startTime);
         final int endFrame = mWaveformView.secondsToFrames(endTime);
         final int duration = (int) (endTime - startTime + 0.5);
@@ -871,6 +881,14 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         Context context = getContext();
         if (context != null)
             mProgressDialog = new SweetAlertDialog(context, SweetAlertDialog.PROGRESS_TYPE);
+        mProgressDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                isFileCanceled = true;
+                onDialogAction();
+                Log.d("MrxOnDialog", "isFile Cancel" + isFileCanceled);
+            }
+        });
         mProgressDialog.setTitle(R.string.progress_dialog_saving);
         mProgressDialog.setCancelable(false);
         mProgressDialog.show();
@@ -1035,6 +1053,12 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
                                 sDialog.dismissWithAnimation();
                             }
                         });
+                dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        onDialogAction();
+                    }
+                });
                 dialog.setOnShowListener(new DialogInterface.OnShowListener() {
                     @Override
                     public void onShow(DialogInterface dialog) {
@@ -1103,6 +1127,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
         // success message and then quit.
         if (mNewFileKind == FileSaveDialog.FILE_KIND_MUSIC ||
                 mNewFileKind == FileSaveDialog.FILE_KIND_ALARM) {
+            isFileSaved = true;
 //            Toast.makeText(getContext(),
 //                    "save_success_message",
 //                    Toast.LENGTH_SHORT)
@@ -1140,7 +1165,7 @@ public abstract class WaveformFragment extends Fragment implements MarkerView.Ma
 
         // If we get here, that means the type is a ringtone.  There are
         // three choices: make this your default ringtone, assign it to a
-        // contact, or do nothing.
+        onDialogAction();
     }
 
     protected OnClickListener mPlayListener = new OnClickListener() {
